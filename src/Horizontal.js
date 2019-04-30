@@ -12,11 +12,18 @@ const { width, height } = Dimensions.get('window');
 const PESPECTIVE = Platform.OS === 'ios' ? 2.38 : 1.7;
 const TR_POSITION = Platform.OS === 'ios' ? 2 : 1.5;
 
+const getChildrenArray = (children) => {
+	const childrenArray = children && children.length ? children : [children];
+	return childrenArray.filter((child) => !!child);
+};
+
 export default class CubeNavigationHorizontal extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.pages = this.props.children.map((child, index) => width * -index);
+		const children = getChildrenArray(props.children);
+
+		this.pages = children.map((child, index) => width * -index);
 
 		this.state = {
 			scrollLockPage: this.pages[this.props.scrollLockPage]
@@ -206,7 +213,9 @@ export default class CubeNavigationHorizontal extends React.Component {
 	};
 
 	render() {
-		let expandStyle = this.props.expandView
+		const { expandView, children } = this.props;
+		const childrenArray = getChildrenArray(children);
+		const expandStyle = expandView
 			? { top: -100, left: 0, width, height: height + 200 }
 			: { width, height };
 
@@ -224,7 +233,7 @@ export default class CubeNavigationHorizontal extends React.Component {
 						expandStyle
 					]}
 				>
-					{this.props.children.map(this._renderChild)}
+					{childrenArray.map(this._renderChild)}
 				</Animated.View>
 			</Animated.View>
 		);
