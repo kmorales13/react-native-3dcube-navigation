@@ -1,31 +1,28 @@
 {
-  "name": "react-native-3dcube-navigation",
-  "keywords": [
-    "react-component",
-    "react-native",
-    "ios",
-    "android"
-  ],
-  "version": "1.0.5",
-  "description": "3D cube navigation JS",
-  "main": "index.js",
-  "scripts": {
-    "start": "react-native start"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/zehfernandes/react-native-3dcube-navigation.git"
-  },
-  "author": "Zeh Fernandes",
-  "license": "ISC",
-  "files": [
-    "src"
-  ],
-  "bugs": {
-    "url": "https://github.com/zehfernandes/react-native-3dcube-navigation/issues"
-  },
-  "homepage": "https://github.com/zehfernandes/react-native-3dcube-navigation#readme",
-  "dependencies": {
-    "react": "^16.5.0"
-  }
+	"name": "react-native-3dcube-navigation",
+	"keywords": [
+		"react-component",
+		"react-native",
+		"ios",
+		"android"
+	],
+	"version": "1.0.5",
+	"description": "3D cube navigation JS",
+	"main": "index.js",
+	"scripts": {
+		"start": "react-native start"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/zehfernandes/react-native-3dcube-navigation.git"
+	},
+	"author": "Zeh Fernandes",
+	"license": "ISC",
+	"files": [
+		"src"
+	],
+	"bugs": {
+		"url": "https://github.com/zehfernandes/react-native-3dcube-navigation/issues"
+	},
+	"homepage": "https://github.com/zehfernandes/react-native-3dcube-navigation#readme"
 }
