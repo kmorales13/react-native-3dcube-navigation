@@ -187,7 +187,7 @@ export default class CubeNavigationHorizontal extends React.Component {
 				style={[
 					StyleSheet.absoluteFill,
 					{ backgroundColor: 'transparent' },
-					this._getTransformsFor(i, false)
+					this._getTransformsFor(i)
 				]}
 				key={`child- ${i}`}
 			>
