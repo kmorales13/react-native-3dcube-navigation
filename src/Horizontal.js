@@ -26,6 +26,7 @@ export default class CubeNavigationHorizontal extends React.Component {
 		this.pages = children.map((child, index) => width * -index);
 
 		this.state = {
+			currentPageIndex: 0,
 			scrollLockPage: this.pages[this.props.scrollLockPage]
 		};
 	}
@@ -61,24 +62,35 @@ export default class CubeNavigationHorizontal extends React.Component {
 				}
 			},
 			onPanResponderRelease: (e, gestureState) => {
-				let mod = gestureState.dx > 0 ? 100 : -100;
+				const { currentPageIndex } = this.state;
+				const mod = gestureState.dx > 0 ? 100 : -100;
+				const { ans: goTo, pageIndex } = this._closest(this._value.x + mod);
 
-				let goTo = this._closest(this._value.x + mod);
 				if (this.lockLast > goTo) return; //remove in the future
+
 				this._animatedValue.flattenOffset({
 					x: this._value.x,
 					y: this._value.y
 				});
+
+				if (currentPageIndex !== pageIndex) {
+					this.props.onBeforePageChange(pageIndex);
+				}
+
 				Animated.spring(this._animatedValue, {
 					toValue: { x: goTo, y: 0 },
 					friction: 3,
 					tension: 0.6,
 					useNativeDriver: true
-				}).start();
-				setTimeout(() => {
-					if (this.props.callBackAfterSwipe)
-						this.props.callBackAfterSwipe(goTo);
-				}, 500);
+				}).start(() => {
+					if (currentPageIndex !== pageIndex) {
+						this.setState({ currentPageIndex: pageIndex }, () => {
+							this.props.onPageChange(pageIndex);
+						});
+					}
+
+					this.props.callBackAfterSwipe(goTo);
+				});
 			}
 		});
 	}
@@ -200,16 +212,20 @@ export default class CubeNavigationHorizontal extends React.Component {
 		let array = this.pages;
 
 		let i = 0;
+		let pageIndex;
 		let minDiff = 1000;
 		let ans;
+
 		for (i in array) {
 			let m = Math.abs(num - array[i]);
 			if (m < minDiff) {
 				minDiff = m;
 				ans = array[i];
+				pageIndex = i;
 			}
 		}
-		return ans;
+
+		return { ans, pageIndex };
 	};
 
 	render() {
@@ -247,5 +263,8 @@ CubeNavigationHorizontal.propTypes = {
 };
 
 CubeNavigationHorizontal.defaultProps = {
-	expandView: false
+	expandView: false,
+	onPageChange: () => {},
+	onBeforePageChange: () => {},
+	callBackAfterSwipe: () => {}
 };
