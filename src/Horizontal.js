@@ -106,20 +106,24 @@ export default class CubeNavigationHorizontal extends React.Component {
 	/*
     @page: index
   */
-	scrollTo(page, animated) {
-		animated = animated == undefined ? true : animated;
+	scrollTo = (index, animated = true) => {
+		const pageWidth = this.pages[index];
+
+		if (pageWidth == null && typeof pageWidth !== 'number') {
+			return;
+		}
 
 		if (animated) {
 			Animated.spring(this._animatedValue, {
-				toValue: { x: this.pages[page], y: 0 },
+				toValue: { x: pageWidth, y: 0 },
 				friction: 4,
 				tension: 0.8,
 				useNativeDriver: true
 			}).start();
 		} else {
-			this._animatedValue.setValue({ x: this.pages[page], y: 0 });
+			this._animatedValue.setValue({ x: pageWidth, y: 0 });
 		}
-	}
+	};
 
 	/*
   Private methods
