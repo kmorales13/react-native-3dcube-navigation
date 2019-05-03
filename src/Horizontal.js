@@ -17,7 +17,7 @@ const getChildrenArray = (children) => {
 	return childrenArray.filter((child) => !!child);
 };
 
-export default class CubeNavigationHorizontal extends React.Component {
+export default class CubeNavigationHorizontal extends React.PureComponent {
 	constructor(props) {
 		super(props);
 
@@ -88,8 +88,6 @@ export default class CubeNavigationHorizontal extends React.Component {
 							this.props.onPageChange(pageIndex);
 						});
 					}
-
-					this.props.callBackAfterSwipe(goTo);
 				});
 			}
 		});
@@ -261,7 +259,8 @@ export default class CubeNavigationHorizontal extends React.Component {
 }
 
 CubeNavigationHorizontal.propTypes = {
-	callBackAfterSwipe: PropTypes.func,
+	onPageChange: PropTypes.func,
+	onBeforePageChange: PropTypes.func,
 	scrollLockPage: PropTypes.number,
 	expandView: PropTypes.bool
 };
@@ -269,6 +268,5 @@ CubeNavigationHorizontal.propTypes = {
 CubeNavigationHorizontal.defaultProps = {
 	expandView: false,
 	onPageChange: () => {},
-	onBeforePageChange: () => {},
-	callBackAfterSwipe: () => {}
+	onBeforePageChange: () => {}
 };
