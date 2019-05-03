@@ -23,11 +23,10 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 
 		const children = getChildrenArray(props.children);
 
-		this.pages = children.map((child, index) => width * -index);
+		this.pages = children.map((_, index) => width * -index);
 
 		this.state = {
-			currentPageIndex: 0,
-			scrollLockPage: this.pages[this.props.scrollLockPage]
+			currentPageIndex: 0
 		};
 	}
 
@@ -53,10 +52,8 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 				Animated.event([null, { dx: this._animatedValue.x }])(e, gestureState);
 
 				// Avoid last movement
-				this.lockLast =
-					this.state.scrollLockPage != undefined
-						? -this.state.scrollLockPage
-						: this.pages[this.pages.length - 1];
+				this.lockLast = this.pages[this.pages.length - 1];
+
 				if (this._value.x > this.pages[0] || this._value.x < this.lockLast) {
 					this._animatedValue.setValue({ x: 0, y: 0 });
 				}
@@ -90,14 +87,6 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 					}
 				});
 			}
-		});
-	}
-
-	componentWillReceiveProps(props) {
-		this.setState({
-			scrollLockPage: props.scrollLockPage
-				? this.pages[props.scrollLockPage]
-				: undefined
 		});
 	}
 
@@ -261,7 +250,6 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 CubeNavigationHorizontal.propTypes = {
 	onPageChange: PropTypes.func,
 	onBeforePageChange: PropTypes.func,
-	scrollLockPage: PropTypes.number,
 	expandView: PropTypes.bool
 };
 
