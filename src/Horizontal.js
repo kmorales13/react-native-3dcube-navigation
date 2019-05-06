@@ -53,7 +53,7 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 				}
 			},
 			onPanResponderRelease: (e, gestureState) => {
-				const mod = gestureState.dx > 0 ? 100 : -100;
+				const mod = gestureState.dx > 0 ? 200 : -200;
 				const { pageWidth, pageIndex } = this._closest(this._value.x + mod);
 
 				if (this.lockLast > pageWidth) return; //remove in the future
