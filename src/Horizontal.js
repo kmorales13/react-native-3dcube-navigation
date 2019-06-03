@@ -5,11 +5,12 @@ import {
 	PanResponder,
 	Animated,
 	StyleSheet,
-	Platform
+	Platform,
+	Dimensions
 } from 'react-native';
 
-const PESPECTIVE = Platform.OS === 'ios' ? 2.38 : 1.7;
-const TR_POSITION = Platform.OS === 'ios' ? 2 : 1.5;
+const PESPECTIVE = Platform.OS === 'ios' ? 2.38 : 1.5;
+const TR_POSITION = Platform.OS === 'ios' ? 2 : 1.75;
 
 const getChildrenArray = (children) => {
 	const childrenArray = children && children.length ? children : [children];
@@ -17,17 +18,25 @@ const getChildrenArray = (children) => {
 };
 
 export default class CubeNavigationHorizontal extends React.PureComponent {
-	state = {
-		pagesWidth: [],
-		containerWidth: null,
-		currentPageIndex: 0
-	};
+	constructor({ children, initialIndex, width }) {
+		super();
+
+		const widthSize = width || Dimensions.get('window').width;
+		const childrenArray = getChildrenArray(children);
+
+		this.state = {
+			width: widthSize,
+			currentPageIndex: initialIndex || 0,
+			pagesWidth: childrenArray.map((_, idx) => widthSize * -idx)
+		};
+	}
 
 	componentWillMount() {
-		const { pagesWidth } = this.state;
+		const { pagesWidth, currentPageIndex } = this.state;
+		const initialValue = pagesWidth[currentPageIndex];
 		this._animatedValue = new Animated.ValueXY();
-		this._animatedValue.setValue({ x: 0, y: 0 });
-		this._value = { x: 0, y: 0 };
+		this._animatedValue.setValue({ x: initialValue, y: 0 });
+		this._value = { x: initialValue, y: 0 };
 
 		this._animatedValue.addListener((value) => {
 			this._value = value;
@@ -78,16 +87,6 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 	/*
   Private methods
   */
-	_storeContainerSize = ({ nativeEvent: { layout } }) => {
-		const children = getChildrenArray(this.props.children);
-		const containerWidth = layout.width;
-
-		this.setState({
-			pagesWidth: children.map((_, index) => containerWidth * -index),
-			containerWidth: containerWidth
-		});
-	};
-
 	_changePage = (pageIndex) => {
 		const { currentPageIndex, pagesWidth } = this.state;
 		const pageWidth = pagesWidth[pageIndex];
@@ -115,7 +114,7 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 	};
 
 	_getTransformsFor = (i) => {
-		const { containerWidth: width } = this.state;
+		const { width } = this.state;
 		const scrollX = this._animatedValue.x;
 		const pageX = -width * i;
 
@@ -181,8 +180,7 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 					{ backgroundColor: 'transparent' },
 					this._getTransformsFor(i)
 				]}
-				key={`child-${i}`}
-			>
+				key={`child-${i}`}>
 				{child}
 			</Animated.View>
 		);
@@ -206,22 +204,11 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 
 	render() {
 		const { children, style } = this.props;
-		const { containerWidth } = this.state;
-
-		if (!containerWidth) {
-			return (
-				<View
-					style={StyleSheet.absoluteFill}
-					onLayout={this._storeContainerSize}
-				/>
-			);
-		}
 
 		return (
 			<View
 				style={[{ backgroundColor: 'black' }, style]}
-				{...this._panResponder.panHandlers}
-			>
+				{...this._panResponder.panHandlers}>
 				{getChildrenArray(children).map(this._renderChild)}
 			</View>
 		);
@@ -230,6 +217,7 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 
 CubeNavigationHorizontal.propTypes = {
 	style: PropTypes.any,
+	width: PropTypes.number,
 	onPageChange: PropTypes.func,
 	onBeforePageChange: PropTypes.func
 };
