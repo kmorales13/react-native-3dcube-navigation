@@ -12,6 +12,11 @@ import {
 const PESPECTIVE = Platform.OS === 'ios' ? 2.38 : 1.5;
 const TR_POSITION = Platform.OS === 'ios' ? 2 : 1.75;
 
+const SWIPE_DIRECTIONS = {
+	LEFT: 'left',
+	LEFT: 'right'
+};
+
 const getChildrenArray = (children) => {
 	const childrenArray = children && children.length ? children : [children];
 	return childrenArray.filter((child) => !!child);
@@ -34,6 +39,9 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 	componentWillMount() {
 		const { pagesWidth, currentPageIndex } = this.state;
 		const initialValue = pagesWidth[currentPageIndex];
+
+		this._captureSwipeDirection = '';
+		this._value = { x: initialValue, y: 0 };
 		this._animatedValue = new Animated.ValueXY();
 		this._animatedValue.setValue({ x: initialValue, y: 0 });
 		this._animatedValue.addListener((value) => {
@@ -42,36 +50,11 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 
 		this._panResponder = PanResponder.create({
 			onMoveShouldSetResponderCapture: () => true,
-			onMoveShouldSetResponderCapture: () => Math.abs(gestureState.dx) > 60,
-			onMoveShouldSetPanResponderCapture: (evt, gestureState) =>
-				Math.abs(gestureState.dx) > 60,
-			onPanResponderGrant: (e, gestureState) => {
-				this._animatedValue.stopAnimation();
-				this._animatedValue.setOffset({ x: this._value.x, y: this._value.y });
-			},
-			onPanResponderMove: (e, gestureState) => {
-				Animated.event([null, { dx: this._animatedValue.x }])(e, gestureState);
-
-				// Avoid last movement
-				this.lockLast = pagesWidth[pagesWidth.length - 1];
-
-				if (this._value.x > pagesWidth[0] || this._value.x < this.lockLast) {
-					this._animatedValue.setValue({ x: 0, y: 0 });
-				}
-			},
-			onPanResponderRelease: (e, gestureState) => {
-				const mod = gestureState.dx > 0 ? 200 : -200;
-				const { pageWidth, pageIndex } = this._closest(this._value.x + mod);
-
-				if (this.lockLast > pageWidth) return; //remove in the future
-
-				this._animatedValue.flattenOffset({
-					x: this._value.x,
-					y: this._value.y
-				});
-
-				this.changePage(pageIndex);
-			}
+			onMoveShouldSetPanResponderCapture: this
+				._onMoveShouldSetPanResponderCapture,
+			onPanResponderGrant: this._onPanResponderGrant,
+			onPanResponderMove: this._onPanResponderMove,
+			onPanResponderRelease: this._onPanResponderRelease
 		});
 	}
 
@@ -102,6 +85,103 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 				this.props.onPageChange(pageIndex);
 			}
 		});
+	};
+
+	/*
+  Private methods
+  */
+	_onMoveShouldSetPanResponderCapture = (_, { dx }) => {
+		const isCapured = Math.abs(dx) > 50;
+
+		if (isCapured) {
+			this._captureSwipeDirection =
+				dx > 0 ? SWIPE_DIRECTIONS.LEFT : SWIPE_DIRECTIONS.RIGHT;
+		}
+
+		return isCapured;
+	};
+
+	_onPanResponderGrant = (e, gestureState) => {
+		const { pagesWidth } = this.state;
+		const firstWidth = pagesWidth[0];
+		const lastWidth = pagesWidth[pagesWidth.length - 1];
+		const newWidth = this._value.x * 2;
+
+		if (
+			!this._disableAnimation() ||
+			// newWidth < firstWidth ||
+			// newWidth > lastWidth
+		) {
+			this._animatedValue.stopAnimation();
+			this._animatedValue.setOffset({ x: this._value.x, y: this._value.y });
+		}
+	};
+
+	_onPanResponderMove = (e, gestureState) => {
+		const { pagesWidth, currentPageIndex } = this.state;
+
+		if (this._disableAnimation()) {
+			return this._animatedValue.setValue({
+				x: pagesWidth[currentPageIndex],
+				y: 0
+			});
+		}
+
+		Animated.event([null, { dx: this._animatedValue.x }])(e, gestureState);
+	};
+
+	_onPanResponderRelease = (e, gestureState) => {
+		const { currentPageIndex, pagesWidth } = this.state;
+		const newPageIndex = this._getClosestIndex(gestureState);
+
+		if (this._disableAnimation()) {
+			return;
+		}
+
+		if (currentPageIndex === newPageIndex) {
+			return this._animatedValue.setValue({
+				x: pagesWidth[currentPageIndex],
+				y: 0
+			});
+		}
+
+		this._animatedValue.flattenOffset({
+			x: this._value.x,
+			y: this._value.y
+		});
+
+		this.changePage(newPageIndex);
+	};
+
+	_disableAnimation = () => {
+		const { disableSwipe, disableSwipeRight, disableSwipeLeft } = this.props;
+		const { pagesWidth, currentPageIndex } = this.state;
+		const isGoingLeft = this._captureSwipeDirection === SWIPE_DIRECTIONS.LEFT;
+
+		return (
+			disableSwipe ||
+			(isGoingLeft && disableSwipeLeft) ||
+			(!isGoingLeft && disableSwipeRight) ||
+			(isGoingLeft && currentPageIndex === 0) ||
+			(!isGoingLeft && currentPageIndex === pagesWidth.length - 1)
+		);
+	};
+
+	_getClosestIndex = (gestureState) => {
+		const mod = gestureState.dx > 0 ? 200 : -200;
+		const num = this._value.x + mod;
+		let minDiff = 1000;
+
+		return this.state.pagesWidth.reduce((memo, pageWidth, i) => {
+			const m = Math.abs(num - pageWidth);
+
+			if (m < minDiff) {
+				minDiff = m;
+				memo = i;
+			}
+
+			return memo;
+		}, 0);
 	};
 
 	_getTransformsFor = (i) => {
@@ -175,22 +255,6 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 				{child}
 			</Animated.View>
 		);
-	};
-
-	_closest = (num) => {
-		let minDiff = 1000;
-
-		return this.state.pagesWidth.reduce((memo, pageWidth, i) => {
-			const m = Math.abs(num - pageWidth);
-
-			if (m < minDiff) {
-				minDiff = m;
-				memo.pageWidth = pageWidth;
-				memo.pageIndex = i;
-			}
-
-			return memo;
-		}, {});
 	};
 
 	render() {
