@@ -33,7 +33,8 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 
 	componentWillMount() {
 		const { pagesWidth, currentPageIndex } = this.state;
-		const initialValue = pagesWidth[currentPageIndex];
+    const initialValue = pagesWidth[currentPageIndex];
+    this._value = { x: initialValue, y: 0 };
 		this._animatedValue = new Animated.ValueXY();
 		this._animatedValue.setValue({ x: initialValue, y: 0 });
 		this._animatedValue.addListener((value) => {
