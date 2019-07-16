@@ -79,8 +79,9 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 	/*
     @page: index
   */
-	changePage = (pageIndex, friction = 3, tension = 0.6) => {
+	changePage = (pageIndex) => {
 		const { currentPageIndex, pagesWidth } = this.state;
+		const { animatedFriction, animatedTension, onBeforePageChange, onPageChange } = this.props;
 		const pageWidth = pagesWidth[pageIndex];
 
 		if (pageWidth == null && typeof pageWidth !== 'number') {
@@ -89,18 +90,18 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 
 		if (currentPageIndex !== pageIndex) {
 			this.setState({ currentPageIndex: pageIndex }, () => {
-				this.props.onBeforePageChange(pageIndex);
+				onBeforePageChange(pageIndex);
 			});
 		}
 
 		Animated.spring(this._animatedValue, {
 			toValue: { x: pageWidth, y: 0 },
-			friction,
-			tension,
+			friction: animatedFriction,
+			tension: animatedTension,
 			useNativeDriver: true
 		}).start(() => {
 			if (currentPageIndex !== pageIndex) {
-				this.props.onPageChange(pageIndex);
+				onPageChange(pageIndex);
 			}
 		});
 	};
@@ -211,10 +212,15 @@ CubeNavigationHorizontal.propTypes = {
 	style: PropTypes.any,
 	width: PropTypes.number,
 	onPageChange: PropTypes.func,
-	onBeforePageChange: PropTypes.func
+	onBeforePageChange: PropTypes.func,
+	animatedFriction: PropTypes.number,
+	animatedTension: PropTypes.number,
+
 };
 
 CubeNavigationHorizontal.defaultProps = {
 	onPageChange: () => {},
-	onBeforePageChange: () => {}
+	onBeforePageChange: () => {},
+	animatedFriction: 3,
+	animatedTension: 0.6,
 };
