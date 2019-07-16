@@ -79,7 +79,7 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 	/*
     @page: index
   */
-	changePage = (pageIndex) => {
+	changePage = (pageIndex, friction = 3, tension = 0.6) => {
 		const { currentPageIndex, pagesWidth } = this.state;
 		const pageWidth = pagesWidth[pageIndex];
 
@@ -95,8 +95,8 @@ export default class CubeNavigationHorizontal extends React.PureComponent {
 
 		Animated.spring(this._animatedValue, {
 			toValue: { x: pageWidth, y: 0 },
-			friction: 3,
-			tension: 0.6,
+			friction,
+			tension,
 			useNativeDriver: true
 		}).start(() => {
 			if (currentPageIndex !== pageIndex) {
